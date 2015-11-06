@@ -1,39 +1,35 @@
 ﻿param (
-    [string]$environmentName,
-    [string]$adminUserName,
-    [string]$adminPassword,
-    [string]$winrmProtocol,
-    [string]$testCertificate,
-    [string]$resourceFilteringMethod,
-    [string]$machineFilter,
-    [string]$webDeployPackage,
-    [string]$webDeployParamFile,
-    [string]$overRideParams,
-    [string]$webSiteName,    
-    [string]$webSitePhysicalPath,
-    [string]$webSitePhysicalPathAuth,
-    [string]$webSiteAuthUserName,
-    [string]$webSiteAuthUserPassword,
-    [string]$addBinding,
-    [string]$assignDuplicateBinding,
-    [string]$protocol,
-    [string]$ipAddress,
-    [string]$port,
-    [string]$hostNameWithHttp,
-    [string]$hostNameWithOutSNI,
-    [string]$hostNameWithSNI,
-    [string]$serverNameIndication,
-    [string]$sslCertThumbPrint,
-    [string]$appPoolName,
-    [string]$dotNetVersion,
-    [string]$pipeLineMode,
-    [string]$appPoolIdentity,
-    [string]$appPoolUsername,
-    [string]$appPoolPassword,
-    [string]$appCmdCommands,
+	[string]$environmentName,
+	[string]$resourceFilteringMethod,
+	[string]$machineFilter,
+	[string]$webDeployPackage,
+	[string]$webDeployParamFile,
+	[string]$overRideParams,
+	[string]$webSiteName,    
+	[string]$webSitePhysicalPath,
+	[string]$webSitePhysicalPathAuth,
+	[string]$webSiteAuthUserName,
+	[string]$webSiteAuthUserPassword,
+	[string]$addBinding,
+	[string]$assignDuplicateBinding,
+	[string]$protocol,
+	[string]$ipAddress,
+	[string]$port,
+	[string]$hostNameWithHttp,
+	[string]$hostNameWithOutSNI,
+	[string]$hostNameWithSNI,
+	[string]$serverNameIndication,
+	[string]$sslCertThumbPrint,
+	[string]$appPoolName,
+	[string]$dotNetVersion,
+	[string]$pipeLineMode,
+	[string]$appPoolIdentity,
+	[string]$appPoolUsername,
+	[string]$appPoolPassword,
+	[string]$appCmdCommands,
 	[string]$skipAction,
-    [string]$deployInParallel
-    )
+	[string]$deployInParallel
+	)
 
 Write-Verbose "Entering script DeployIISWebApp.ps1" -Verbose
 
@@ -41,21 +37,18 @@ $hostName = [string]::Empty
 
 if($protocol -eq "http")
 {
-    $hostName = $hostNameWithHttp
+	$hostName = $hostNameWithHttp
 }
 elseif($serverNameIndication -eq "true")
 {
-    $hostName = $hostNameWithSNI
+	$hostName = $hostNameWithSNI
 }
 else
 {
-    $hostName = $hostNameWithOutSNI
+	$hostName = $hostNameWithOutSNI
 }
 
 Write-Verbose "environmentName = $environmentName" -Verbose
-Write-Verbose "adminUserName = $adminUserName" -Verbose
-Write-Verbose "winrm protocol to connect to machine  = $winrmProtocol" -Verbose
-Write-Verbose "testCertificate = $testCertificate" -Verbose
 Write-Verbose "resourceFilteringMethod = $resourceFilteringMethod" -Verbose
 Write-Verbose "machineFilter = $machineFilter" -Verbose
 Write-Verbose "webDeployPackage = $webDeployPackage" -Verbose
@@ -96,6 +89,7 @@ function Encode-String
 {
 	param(
 	[string]$String
+		
 	)
 	if(-not ([string]::IsNullOrEmpty($String)))
 	{
@@ -103,6 +97,7 @@ function Encode-String
 		$encodedCommand = [Convert]::ToBase64String($bytes)
 		return $encodedCommand
 	}
+
 	return [string]::Empty
 }
 
@@ -130,18 +125,18 @@ $errorMessage = [string]::Empty
 
 if($resourceFilteringMethod -eq "tags")
 {
-    $errorMessage = Invoke-RemoteDeployment -environmentName $environmentName -tags $machineFilter -scriptBlockContent $msDeployOnTargetMachinesBlock -scriptArguments $scriptArgs -runPowershellInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate
+	$errorMessage = Invoke-RemoteDeployment -environmentName $environmentName -tags $machineFilter -scriptBlockContent $msDeployOnTargetMachinesBlock -scriptArguments $scriptArgs -runPowershellInParallel $deployInParallel
 }
 else
 {
-    $errorMessage = Invoke-RemoteDeployment -environmentName $environmentName -machineNames $machineFilter -scriptBlockContent $msDeployOnTargetMachinesBlock -scriptArguments $scriptArgs -runPowershellInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate
+	$errorMessage = Invoke-RemoteDeployment -environmentName $environmentName -machineNames $machineFilter -scriptBlockContent $msDeployOnTargetMachinesBlock -scriptArguments $scriptArgs -runPowershellInParallel $deployInParallel
 }
 
 if(-not [string]::IsNullOrEmpty($errorMessage))
 {
-    $readmelink = "http://aka.ms/iiswebappdeployreadme"
-    $helpMessage = (Get-LocalizedString -Key "For more info please refer to {0}" -ArgumentList $readmelink)
-    throw "$errorMessage $helpMessage"
+	$readmelink = "http://aka.ms/iiswebappdeployreadme"
+	$helpMessage = (Get-LocalizedString -Key "For more info please refer to {0}" -ArgumentList $readmelink)
+	throw "$errorMessage $helpMessage"
 }
 
 Write-Output ( Get-LocalizedString -Key "Successfully deployed IIS Web Deploy Package : {0}" -ArgumentList $webDeployPackage)
