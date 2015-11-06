@@ -31,6 +31,7 @@
     [string]$appPoolUsername,
     [string]$appPoolPassword,
     [string]$appCmdCommands,
+	[string]$skipAction,
     [string]$deployInParallel
     )
 
@@ -81,6 +82,7 @@ Write-Verbose "appPoolIdentity = $appPoolIdentity" -Verbose
 Write-Verbose "appPoolUsername = $appPoolUsername" -Verbose
 
 Write-Verbose "appCmdCommands = $appCmdCommands" -Verbose
+Write-Verbose "skipAction = $skipAction" -Verbose
 Write-Verbose "deployInParallel = $deployInParallel" -Verbose
 
 import-module "Microsoft.TeamFoundation.DistributedTask.Task.Internal"
@@ -89,7 +91,20 @@ import-module "Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs"
 Import-Module "Microsoft.TeamFoundation.DistributedTask.Task.Deployment.Internal"
 Import-Module "Microsoft.TeamFoundation.DistributedTask.Task.Deployment.RemoteDeployment"
 
-$overRideParams = $overRideParams.Replace('"', '''')
+
+function Encode-String
+{
+	param(
+	[string]$String
+	)
+	if(-not ([string]::IsNullOrEmpty($String)))
+	{
+		$bytes = [System.Text.Encoding]::Unicode.GetBytes($String)
+		$encodedCommand = [Convert]::ToBase64String($bytes)
+		return $encodedCommand
+	}
+	return [string]::Empty
+}
 
 $webDeployPackage = $webDeployPackage.Trim('"', ' ')
 $webDeployParamFile = $webDeployParamFile.Trim('"', ' ')
@@ -101,9 +116,12 @@ $appPoolName = $appPoolName.Trim('"', ' ')
 $appPoolUsername = $appPoolUsername.Trim()
 
 $appCmdCommands = $appCmdCommands.Replace('"', '`"')
+$skipAction = $skipAction.Replace('"', '''')
+
+$overRideParams = Encode-String -String $overRideParams
 
 $msDeployOnTargetMachinesBlock = Get-Content  ./MsDeployOnTargetMachines.ps1 | Out-String
-$scriptArgs = " -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`"  -WebSiteName `"$webSiteName`" -WebSitePhysicalPath `"$webSitePhysicalPath`" -WebSitePhysicalPathAuth `"$webSitePhysicalPathAuth`" -WebSiteAuthUserName $webSiteAuthUserName -WebSiteAuthUserPassword $webSiteAuthUserPassword -AddBinding $addBinding -AssignDuplicateBinding $assignDuplicateBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName $hostName -ServerNameIndication $serverNameIndication -SslCertThumbPrint $sslCertThumbPrint -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
+$scriptArgs = " -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`"  -WebSiteName `"$webSiteName`" -WebSitePhysicalPath `"$webSitePhysicalPath`" -WebSitePhysicalPathAuth `"$webSitePhysicalPathAuth`" -WebSiteAuthUserName $webSiteAuthUserName -WebSiteAuthUserPassword $webSiteAuthUserPassword -AddBinding $addBinding -AssignDuplicateBinding $assignDuplicateBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName $hostName -ServerNameIndication $serverNameIndication -SslCertThumbPrint $sslCertThumbPrint -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`" -SkipAction `"$skipAction`" "
 
 Write-Verbose "MsDeployOnTargetMachines Script Arguments : $scriptArgs" -Verbose
 Write-Output ( Get-LocalizedString -Key "Starting deployment of IIS Web Deploy Package : {0}" -ArgumentList $webDeployPackage)
