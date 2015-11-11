@@ -17,16 +17,11 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 7
+    "Patch": 8
   },
   "demands": [],
-  "minimumAgentVersion": "1.90.0",
+  "minimumAgentVersion": "1.88.9",
   "groups": [
-    {
-      "name": "deployment",
-      "displayName": "ms-resource:loc.group.displayName.deployment",
-      "isExpanded": true
-    },
     {
       "name": "website",
       "displayName": "ms-resource:loc.group.displayName.website",
@@ -46,48 +41,11 @@
   "inputs": [
     {
       "name": "EnvironmentName",
-      "type": "multiLine",
+      "type": "pickList",
       "label": "ms-resource:loc.input.label.EnvironmentName",
       "defaultValue": "",
       "required": true,
       "helpMarkDown": "ms-resource:loc.input.help.EnvironmentName"
-    },
-    {
-      "name": "AdminUserName",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.AdminUserName",
-      "defaultValue": "",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.AdminUserName"
-    },
-    {
-      "name": "AdminPassword",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.AdminPassword",
-      "defaultValue": "",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.AdminPassword"
-    },
-    {
-      "name": "WinRMProtocol",
-      "type": "radio",
-      "label": "ms-resource:loc.input.label.WinRMProtocol",
-      "required": false,
-      "defaultValue": "",
-      "options": {
-        "Http": "HTTP",
-        "Https": "HTTPS"
-      },
-      "helpMarkDown": "ms-resource:loc.input.help.WinRMProtocol"
-    },
-    {
-      "name": "TestCertificate",
-      "type": "boolean",
-      "label": "ms-resource:loc.input.label.TestCertificate",
-      "defaultValue": "true",
-      "visibleRule": "WinRMProtocol = Https",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.TestCertificate"
     },
     {
       "name": "ResourceFilteringMethod",
@@ -95,7 +53,6 @@
       "label": "ms-resource:loc.input.label.ResourceFilteringMethod",
       "required": false,
       "defaultValue": "machineNames",
-      "visibleRule": "WinRMProtocol = Invalid",
       "options": {
         "machineNames": "Machine Names",
         "tags": "Tags"
@@ -108,7 +65,6 @@
       "label": "ms-resource:loc.input.label.MachineFilter",
       "required": false,
       "defaultValue": "",
-      "visibleRule": "WinRMProtocol = Invalid",
       "helpMarkDown": "ms-resource:loc.input.help.MachineFilter"
     },
     {
@@ -116,7 +72,6 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.WebDeployPackage",
       "required": true,
-      "groupName": "deployment",
       "defaultValue": "",
       "helpMarkDown": "ms-resource:loc.input.help.WebDeployPackage"
     },
@@ -125,7 +80,6 @@
       "type": "string",
       "label": "ms-resource:loc.input.label.WebDeployParamFile",
       "required": false,
-      "groupName": "deployment",
       "defaultValue": "",
       "helpMarkDown": "ms-resource:loc.input.help.WebDeployParamFile"
     },
@@ -134,7 +88,6 @@
       "type": "multiLine",
       "label": "ms-resource:loc.input.label.OverRideParams",
       "required": false,
-      "groupName": "deployment",
       "defaultValue": "",
       "helpMarkDown": "ms-resource:loc.input.help.OverRideParams"
     },
@@ -405,6 +358,14 @@
       "required": false,
       "groupName": "advanced",
       "helpMarkDown": "ms-resource:loc.input.help.DeployInParallel"
+    }
+  ],
+  "sourceDefinitions": [
+    {
+      "target": "EnvironmentName",
+      "endpoint": "/$(system.teamProject)/_apis/vslabs/environments",
+      "selector": "jsonpath:$.value[*].name",
+      "authKey": "tfs:DevTestLabs"
     }
   ],
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
