@@ -12,7 +12,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 16
+        "Patch": 25
     },
     "demands" : [
         "msbuild"
@@ -56,19 +56,22 @@
             "required":false,
             "helpMarkDown": "Additional arguments passed to MSBuild."
         },
-        { 
+        {
             "name": "clean", 
             "type": "boolean", 
             "label": "Clean", 
             "defaultValue": "false", 
-            "required": false 
+            "required": false,
+            "helpMarkDown": "Run a clean build (/t:clean) prior to the build."
         },
         { 
             "name": "restoreNugetPackages", 
             "type": "boolean", 
             "label": "Restore NuGet Packages", 
-            "defaultValue": "true", 
-            "required": false 
+            "defaultValue": "false", 
+            "required": false,
+            "groupName": "advanced",
+            "helpMarkDown": "This option is deprecated. To restore NuGet packages, add a NuGet Installer step before the build."
         },
         { 
             "name": "logProjectEvents", 
@@ -133,10 +136,17 @@
     ],
     "instanceNameFormat": "Build solution $(solution)",
     "execution": {
+        "PowerShell3": {
+            "target": "MSBuild.ps1"
+        },
         "PowerShell": {
-            "target": "$(currentDirectory)\\MSBuild.ps1",
+            "target": "$(currentDirectory)\\LegacyMSBuild.ps1",
             "argumentFormat": "",
             "workingDirectory": "$(currentDirectory)"
         }
+    },
+    "messages": {
+        "UnableToFindMSBuildVersion0Architecture1LookingForLatestVersion": "Unable to find MSBuild: Version = {0}, Architecture = {1}. Looking for the latest version.",
+        "MSBuildNotFoundVersion0Architecture1TryDifferent": "MSBuild not found: Version = {0}, Architecture = {1}. Try a different version/architecture combination, specify a location, or install the appropriate MSBuild version/architecture."
     }
 }

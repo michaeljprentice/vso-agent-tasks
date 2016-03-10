@@ -1,11 +1,15 @@
 param (
-    [string][Parameter(Mandatory=$true)]$connectedServiceName,
-    [string][Parameter(Mandatory=$true)]$sourcePath,
-    [string][Parameter(Mandatory=$true)]$storageAccount,
+    [string][Parameter(Mandatory=$true)]$connectedServiceNameSelector,
+    [string][Parameter(Mandatory=$true)]$sourcePath,    
     [string][Parameter(Mandatory=$true)]$destination,
+    [string]$connectedServiceName,
+    [string]$connectedServiceNameARM,
+    [string]$storageAccount,
+    [string]$storageAccountRM,
     [string]$containerName,
     [string]$blobPrefix,
     [string]$environmentName,
+    [string]$environmentNameRM,
     [string]$resourceFilteringMethod,
     [string]$machineNames,
     [string]$vmsAdminUserName,
@@ -14,18 +18,25 @@ param (
     [string]$additionalArguments,
     [string]$cleanTargetBeforeCopy,
     [string]$copyFilesInParallel,
-    [string]$skipCACheck
+    [string]$skipCACheck,
+    [string]$enableCopyPrerequisites,
+    [string]$outputStorageContainerSasToken,
+    [string]$outputStorageURI
 )
 
 Write-Verbose "Starting Azure File Copy Task" -Verbose
 
+Write-Verbose "connectedServiceNameSelector = $connectedServiceNameSelector" -Verbose
 Write-Verbose "connectedServiceName = $connectedServiceName" -Verbose
+Write-Verbose "connectedServiceNameARM = $connectedServiceNameARM" -Verbose
 Write-Verbose "sourcePath = $sourcePath" -Verbose
 Write-Verbose "storageAccount = $storageAccount" -Verbose
+Write-Verbose "storageAccountRM = $storageAccountRM" -Verbose
 Write-Verbose "destination type = $destination" -Verbose
 Write-Verbose "containerName = $containerName" -Verbose
 Write-Verbose "blobPrefix = $blobPrefix" -Verbose
 Write-Verbose "environmentName = $environmentName" -Verbose
+Write-Verbose "environmentNameRM = $environmentNameRM" -Verbose
 Write-Verbose "resourceFilteringMethod = $resourceFilteringMethod" -Verbose
 Write-Verbose "machineNames = $machineNames" -Verbose
 Write-Verbose "vmsAdminUserName = $vmsAdminUserName" -Verbose
@@ -34,9 +45,19 @@ Write-Verbose "additionalArguments = $additionalArguments" -Verbose
 Write-Verbose "cleanTargetBeforeCopy = $cleanTargetBeforeCopy" -Verbose
 Write-Verbose "copyFilesInParallel = $copyFilesInParallel" -Verbose
 Write-Verbose "skipCACheck = $skipCACheck" -Verbose
+Write-Verbose "enableCopyPrerequisites = $enableCopyPrerequisites" -Verbose
+Write-Verbose "outputStorageContainerSASToken = $outputStorageContainerSASToken" -Verbose
+Write-Verbose "outputStorageURI = $outputStorageURI" -Verbose
+
+if ($connectedServiceNameSelector -eq "ConnectedServiceNameARM")
+{
+    $connectedServiceName = $connectedServiceNameARM
+    $storageAccount = $storageAccountRM
+    $environmentName = $environmentNameRM
+}
 
 # Constants #
-$defaultSasTokenTimeOutInHours = 2
+$defaultSasTokenTimeOutInHours = 4
 $useHttpsProtocolOption = ''
 $ErrorActionPreference = 'Stop'
 $telemetrySet = $false
@@ -107,6 +128,17 @@ Upload-FilesToAzureContainer -sourcePath $sourcePath -storageAccountName $storag
 # Complete the task if destination is azure blob
 if ($destination -eq "AzureBlob")
 {
+    # Get URI and SaSToken for output if needed
+    if(-not [string]::IsNullOrEmpty($outputStorageURI))
+    {
+        $storageAccountContainerURI = $storageContext.BlobEndPoint + $containerName
+        Write-Verbose "##vso[task.setvariable variable=$outputStorageURI;]$storageAccountContainerURI" -Verbose
+    }
+    if(-not [string]::IsNullOrEmpty($outputStorageContainerSASToken))
+    {
+        $storageContainerSaSToken = New-AzureStorageContainerSASToken -Container $containerName -Context $storageContext -Permission r -ExpiryTime (Get-Date).AddHours($defaultSasTokenTimeOutInHours)
+        Write-Verbose "##vso[task.setvariable variable=$outputStorageContainerSASToken;]$storageContainerSasToken" -Verbose
+    }
     Write-Verbose "Completed Azure File Copy Task for Azure Blob Destination" -Verbose
     return
 }
@@ -116,7 +148,7 @@ try
 {
     # getting azure vms properties(name, fqdn, winrmhttps port)
     $azureVMResourcesProperties = Get-AzureVMResourcesProperties -resourceGroupName $environmentName -connectionType $connectionType `
-    -resourceFilteringMethod $resourceFilteringMethod -machineNames $machineNames
+    -resourceFilteringMethod $resourceFilteringMethod -machineNames $machineNames -enableCopyPrerequisites $enableCopyPrerequisites
 
     $skipCACheckOption = Get-SkipCACheckOption -skipCACheck $skipCACheck
     $azureVMsCredentials = Get-AzureVMsCredentials -vmsAdminUserName $vmsAdminUserName -vmsAdminPassword $vmsAdminPassword

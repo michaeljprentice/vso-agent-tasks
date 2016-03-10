@@ -3,7 +3,7 @@
 import tl = require('vsts-task-lib/task');
 import path = require('path');
 
-var sourceDir = tl.getVariable('build.sourceDirectory');
+var sourceDir = tl.getVariable('build.sourcesDirectory');
 
 var tool = tl.which('xcrun', true);
 var xcv = tl.createToolRunner(tool);
@@ -21,9 +21,9 @@ xcrun.arg('-sdk');
 xcrun.arg(tl.getInput('sdk', true));
 xcrun.arg('PackageApplication');
 xcrun.arg('-v');
-xcrun.arg(path.join(sourceDir, tl.getInput('appPath', true), tl.getInput('appName', true)));
+xcrun.pathArg(path.join(sourceDir, tl.getInput('appPath', true), tl.getInput('appName', true)));
 xcrun.arg('-o');
-xcrun.arg(path.join(sourceDir, ipaPath, tl.getInput('ipaName', true)));
+xcrun.pathArg(path.join(sourceDir, ipaPath, tl.getInput('ipaName', true)));
 // TODO: consider --sign option
 //xcrun.arg('--sign');
 //xcrun.arg('iPhone Developer: Some Name (5CX2Y47E88)');

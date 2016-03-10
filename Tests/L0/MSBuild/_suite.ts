@@ -22,39 +22,6 @@ describe('MSBuild Suite', function () {
     });
 
     if (ps) {
-        it('(Format-MSBuildArguments) adds configuration property', (done) => {
-            psm.runPS(path.join(__dirname, 'Format-MSBuildArguments.AddsConfigurationProperty.ps1'), done);
-        })
-        it('(Format-MSBuildArguments) adds platform property', (done) => {
-            psm.runPS(path.join(__dirname, 'Format-MSBuildArguments.AddsPlatformProperty.ps1'), done);
-        })
-        it('(Get-SolutionFiles) resolves wildcards', (done) => {
-            psm.runPS(path.join(__dirname, 'Get-SolutionFiles.ResolvesWildcards.ps1'), done);
-        })
-        it('(Get-SolutionFiles) returns non wildcard solution', (done) => {
-            psm.runPS(path.join(__dirname, 'Get-SolutionFiles.ReturnsNonWildcardSolution.ps1'), done);
-        })
-        it('(Get-SolutionFiles) throws if no solution', (done) => {
-            psm.runPS(path.join(__dirname, 'Get-SolutionFiles.ThrowsIfNoSolution.ps1'), done);
-        })
-        it('(Get-SolutionFiles) throws if no solution found', (done) => {
-            psm.runPS(path.join(__dirname, 'Get-SolutionFiles.ThrowsIfNoSolutionFound.ps1'), done);
-        })
-        it('(Invoke-BuildTools) invokes all tools for all files', (done) => {
-            psm.runPS(path.join(__dirname, 'Invoke-BuildTools.InvokesAllToolsForAllFiles.ps1'), done);
-        })
-        it('(Invoke-BuildTools) skips clean if specified', (done) => {
-            psm.runPS(path.join(__dirname, 'Invoke-BuildTools.SkipsCleanIfSpecified.ps1'), done);
-        })
-        it('(Invoke-BuildTools) skips restore if nu get not found', (done) => {
-            psm.runPS(path.join(__dirname, 'Invoke-BuildTools.SkipsRestoreIfNuGetNotFound.ps1'), done);
-        })
-        it('(Invoke-BuildTools) skips restore if specified', (done) => {
-            psm.runPS(path.join(__dirname, 'Invoke-BuildTools.SkipsRestoreIfSpecified.ps1'), done);
-        })
-        it('passes arguments', (done) => {
-            psm.runPS(path.join(__dirname, 'PassesArguments.ps1'), done);
-        })
         it('(Select-MSBuildLocation) defaults method to location if location specified', (done) => {
             psm.runPS(path.join(__dirname, 'Select-MSBuildLocation.DefaultsMethodToLocationIfLocationSpecified.ps1'), done);
         })
@@ -78,6 +45,9 @@ describe('MSBuild Suite', function () {
         })
         it('(Select-MSBuildLocation) throws if version not found', (done) => {
             psm.runPS(path.join(__dirname, 'Select-MSBuildLocation.ThrowsIfVersionNotFound.ps1'), done);
+        })
+        it('passes arguments', (done) => {
+            psm.runPS(path.join(__dirname, 'PassesArguments.ps1'), done);
         })
     }
 });
