@@ -1,7 +1,7 @@
-[cmdletbinding()]
+[CmdletBinding()]
 param()
 
-[hashtable]$mocks = @{ }
+[hashtable]$script:mocks = @{ }
 . $PSScriptRoot\PrivateFunctions.ps1
 . $PSScriptRoot\PublicFunctions.ps1
 
@@ -11,7 +11,6 @@ Export-ModuleMember -Verbose:$false -Function @(
     'Assert-IsNotNullOrEmpty'
     'Assert-IsNullOrEmpty'
     'Assert-IsGreaterThan'
-    'Assert-Parses'
     'Assert-Throws'
     'Assert-WasCalled'
     'Register-Mock'

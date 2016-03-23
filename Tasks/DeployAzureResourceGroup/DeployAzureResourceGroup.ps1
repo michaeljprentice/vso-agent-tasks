@@ -1,7 +1,11 @@
 param(
-    [string][Parameter(Mandatory=$true)]$ConnectedServiceName,
-    [string][Parameter(Mandatory=$true)]$action,
-    [string][Parameter(Mandatory=$true)]$resourceGroupName,
+    [string][Parameter(Mandatory=$true)]$connectedServiceNameSelector,
+    [string]$connectedServiceName,
+    [string]$connectedServiceNameClassic,
+    [string]$action,
+    [string]$actionClassic,
+    [string]$resourceGroupName,
+    [string]$cloudService,
     [string]$location,
     [string]$csmFile,
     [string]$csmParametersFile,
@@ -16,19 +20,30 @@ param(
     [string]$vmPassword,
     [string]$skipCACheck,
     [string]$outputVariable,
-    [string]$enableRemoteDeploymentForCreate,
-	[string]$enableRemoteDeploymentForSelect
+    [string]$enableDeploymentPrerequisitesForCreate,
+	[string]$enableDeploymentPrerequisitesForSelect
 )
 
 Write-Verbose -Verbose "Starting Azure Resource Group Deployment Task"
+Write-Verbose -Verbose "ConnectedServiceNameSelector = $connectedServiceNameSelector"
 Write-Verbose -Verbose "ConnectedServiceName = $ConnectedServiceName"
+Write-Verbose -Verbose "ConnectedServiceNameClassic = $connectedServiceNameClassic"
 Write-Verbose -Verbose "Action = $action"
+Write-Verbose -Verbose "ActionClassic = $actionClassic"
 Write-Verbose -Verbose "ResourceGroupName = $resourceGroupName"
+Write-Verbose -Verbose "CloudService = $cloudService"
 Write-Verbose -Verbose "Location = $location"
 Write-Verbose -Verbose "OverrideParameters = $overrideParameters"
 Write-Verbose -Verbose "OutputVariable = $outputVariable"
-Write-Verbose -Verbose "enableRemoteDeploymentForCreate = $enableRemoteDeploymentForCreate"
-Write-Verbose -Verbose "enableRemoteDeploymentForSelect = $enableRemoteDeploymentForSelect"
+Write-Verbose -Verbose "enableDeploymentPrerequisitesForCreate = $enableDeploymentPrerequisitesForCreate"
+Write-Verbose -Verbose "enableDeploymentPrerequisitesForSelect = $enableDeploymentPrerequisitesForSelect"
+
+if($connectedServiceNameSelector -eq "ConnectedServiceNameClassic")
+{
+    $connectedServiceName = $connectedServiceNameClassic
+    $action = $actionClassic
+    $resourceGroupName = $cloudService
+}
 
 $resourceGroupName = $resourceGroupName.Trim()
 $location = $location.Trim()
@@ -55,12 +70,7 @@ function Handle-SelectResourceGroupAction
         throw (Get-LocalizedString -Key "Please provide the output variable name since you have specified the 'Select Resource Group' option.")
     }
 
-    if($enableRemoteDeploymentForSelect -eq "true")
-    {
-	    Enable-WinRMHttpsListener -ResourceGroupName $resourceGroupName
-    }
-
-    Instantiate-Environment -resourceGroupName $resourceGroupName -outputVariable $outputVariable
+    Instantiate-Environment -resourceGroupName $resourceGroupName -outputVariable $outputVariable -enableDeploymentPrerequisites $enableDeploymentPrerequisitesForSelect
 }
 
 function Handle-ResourceGroupLifeCycleOperations
@@ -76,14 +86,13 @@ function Handle-ResourceGroupLifeCycleOperations
     {
         $azureResourceGroupDeployment = Create-AzureResourceGroup -csmFile $csmFile -csmParametersFile $csmParametersFile -resourceGroupName $resourceGroupName -location $location -overrideParameters $overrideParameters
 
-        if($enableRemoteDeploymentForCreate -eq "true")
-        {
-	        Enable-WinRMHttpsListener -ResourceGroupName $resourceGroupName
-        }
-
         if(-not [string]::IsNullOrEmpty($outputVariable))
         {
-            Instantiate-Environment -resourceGroupName $resourceGroupName -outputVariable $outputVariable
+            Instantiate-Environment -resourceGroupName $resourceGroupName -outputVariable $outputVariable -enableDeploymentPrerequisites $enableDeploymentPrerequisitesForCreate
+        }
+        elseif($enableDeploymentPrerequisitesForCreate -eq "true")
+        {
+            Enable-WinRMHttpsListener -ResourceGroupName $resourceGroupName
         }
     }
     else

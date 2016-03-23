@@ -163,6 +163,7 @@ function Get-MsDeployCmdArgs
     $webDeployPackage = $webDeployPackage.Trim('"')
     $webDeployParamFile = $webDeployParamFile.Trim('"')
     $overRideParams = $overRideParams.Trim('"').Replace('''', '"')
+    $setParams = $overRideParams.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
     
     if(-not ( Test-Path -Path $webDeployPackage))
     {
@@ -180,10 +181,14 @@ function Get-MsDeployCmdArgs
 
         $msDeployCmdArgs = [string]::Format(' -setParamFile="{0}"', $webDeployParamFile)
     }
-
-    if(-not (IsInputNullOrEmpty -str $overRideParams))
+    
+    foreach($setParam in $setParams)
     {
-        $msDeployCmdArgs = [string]::Format('{0} -setParam:{1}', $msDeployCmdArgs, $overRideParams)
+        $setParam = $setParam.Trim()
+        if(-not [string]::IsNullOrEmpty($setParam))
+        {
+            $msDeployCmdArgs = [string]::Format('{0} -setParam:{1}', $msDeployCmdArgs, $setParam)
+        }
     }
     
     $msDeployCmdArgs = [string]::Format(' -verb:sync -source:package="{0}" {1} -dest:auto -verbose -retryAttempts:3 -retryInterval:3000', $webDeployPackage, $msDeployCmdArgs)
@@ -360,7 +365,7 @@ function Add-SslCert
         $addCertCmd = [string]::Format("netsh http add sslcert ipport=0.0.0.0:{0} certhash={1} appid={{{2}}}", $port, $certhash, [System.Guid]::NewGuid().toString())
     }
 
-    $isItSameCert = $result.Get(5).Contains([string]::Format("{0}", $certhash))
+    $isItSameCert = $result.Get(5).ToLower().Contains([string]::Format("{0}", $certhash.ToLower()))
 
     if($isItSameBinding -and $isItSameCert)
     {
@@ -568,7 +573,7 @@ function Create-And-Update-AppPool
 {
     param(
         [string]$appPoolName,
-        [string]$clrVerion,
+        [string]$clrVersion,
         [string]$pipeLineMode,
         [string]$identity,
         [string]$userName,
